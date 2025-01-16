@@ -98,7 +98,7 @@
         };
         packages.bpmn-to-image =
           let
-            chromium = pkgs.buildFHSUserEnv {
+            chromium = legacy.buildFHSUserEnv {
               name = "chromium";
               targetPkgs = pkgs: [
                 pkgs.chromium
