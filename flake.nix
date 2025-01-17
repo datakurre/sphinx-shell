@@ -113,7 +113,7 @@
                         "'$out/lib'"
             substituteInPlace $out/lib/index.js \
               --replace "puppeteer.launch();" \
-                        "puppeteer.launch({executablePath: '${pkgs.chromium}/bin/chromium'});" \
+                        "puppeteer.launch({executablePath: '${pkgs.chromium}/bin/chromium', args: ['--no-sandbox', '--disable-setuid-sandbox']});" \
               --replace "await loadScript(viewerScript);" \
                         "await loadScript(viewerScript); await loadScript('$out/lib/robot-task.js')" \
               --replace "module.exports.convertAll = convertAll;" \
