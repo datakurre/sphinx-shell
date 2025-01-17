@@ -96,54 +96,42 @@
           ];
           runScript = "uv";
         };
-        packages.bpmn-to-image =
-          let
-            chromium = legacy.buildFHSUserEnv {
-              name = "chromium";
-              targetPkgs = pkgs: [
-                pkgs.chromium
-                pkgs.freefont_ttf
-                pkgs.dejavu_fonts
-              ];
-              runScript = "chromium";
-            };
-          in
-          (import inputs.npmlock2nix { inherit pkgs; }).v1.build rec {
-            src = inputs.bpmn-to-image;
-            preBuild = ''
-              export HOME=$(mktemp -d)
-            '';
-            installPhase = ''
-              mkdir -p $out/bin $out/lib
-              cp -a node_modules $out/lib
-              cp -a cli.js $out/bin/bpmn-to-image
-              cp -a index.js $out/lib
-              cp -a skeleton.html $out/lib
-              cp ${inputs.robot-task}/dist/module-iife.js $out/lib/robot-task.js
-              substituteInPlace $out/bin/bpmn-to-image \
-                --replace "'./'" \
-                          "'$out/lib'"
-              substituteInPlace $out/lib/index.js \
-                --replace "puppeteer.launch();" \
-                          "puppeteer.launch({executablePath: '${chromium}/bin/chromium', args: ['--disable-gpu', '--disable-dev-shm-usage', '--disable-setuid-sandbox', '--no-sandbox'], headless: true});" \
-                --replace "await loadScript(viewerScript);" \
-                          "await loadScript(viewerScript); await loadScript('$out/lib/robot-task.js')" \
-                --replace "module.exports.convertAll = convertAll;" \
-                          "module.exports.convertAll = async (conversions, options={}) => { await convertAll(conversions, options); process.exit(0); };"
+        packages.bpmn-to-image = (import inputs.npmlock2nix { inherit pkgs; }).v1.build rec {
+          src = inputs.bpmn-to-image;
+          preBuild = ''
+            export HOME=$(mktemp -d)
+          '';
+          installPhase = ''
+            mkdir -p $out/bin $out/lib
+            cp -a node_modules $out/lib
+            cp -a cli.js $out/bin/bpmn-to-image
+            cp -a index.js $out/lib
+            cp -a skeleton.html $out/lib
+            cp ${inputs.robot-task}/dist/module-iife.js $out/lib/robot-task.js
+            substituteInPlace $out/bin/bpmn-to-image \
+              --replace "'./'" \
+                        "'$out/lib'"
+            substituteInPlace $out/lib/index.js \
+              --replace "puppeteer.launch();" \
+                        "puppeteer.launch({executablePath: '${pkgs.chromium}/bin/chromium'});" \
+              --replace "await loadScript(viewerScript);" \
+                        "await loadScript(viewerScript); await loadScript('$out/lib/robot-task.js')" \
+              --replace "module.exports.convertAll = convertAll;" \
+                        "module.exports.convertAll = async (conversions, options={}) => { await convertAll(conversions, options); process.exit(0); };"
 
-              substituteInPlace $out/lib/skeleton.html \
-                --replace "container: '#canvas'" \
-                          "container: '#canvas', additionalModules: [ RobotTaskModule ]"
-              wrapProgram $out/bin/bpmn-to-image \
-                --set PATH ${pkgs.lib.makeBinPath [ pkgs.nodejs ]} \
-                --set NODE_PATH $out/lib/node_modules
-            '';
-            buildInputs = [ pkgs.makeWrapper ];
-            buildCommands = [ ];
-            node_modules_attrs = {
-              PUPPETEER_SKIP_DOWNLOAD = "true";
-            };
+            substituteInPlace $out/lib/skeleton.html \
+              --replace "container: '#canvas'" \
+                        "container: '#canvas', additionalModules: [ RobotTaskModule ]"
+            wrapProgram $out/bin/bpmn-to-image \
+              --set PATH ${pkgs.lib.makeBinPath [ pkgs.nodejs ]} \
+              --set NODE_PATH $out/lib/node_modules
+          '';
+          buildInputs = [ pkgs.makeWrapper ];
+          buildCommands = [ ];
+          node_modules_attrs = {
+            PUPPETEER_SKIP_DOWNLOAD = "true";
           };
+        };
         packages.dmn-to-html = (import inputs.npmlock2nix { inherit pkgs; }).v1.build rec {
           src = inputs.dmn-to-html;
           preBuild = ''
