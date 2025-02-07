@@ -1,6 +1,12 @@
 {
   description = "Opinionated Sphinx Shell";
 
+  nixConfig = {
+    extra-trusted-public-keys =
+      "datakurre.cachix.org-1:ayZJTy5BDd8K4PW9uc9LHV+WCsdi/fu1ETIYZMooK78=";
+    extra-substituters = "https://datakurre.cachix.org";
+  };
+
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
